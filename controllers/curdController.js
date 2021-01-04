@@ -82,4 +82,14 @@ exports.getUser = async (req, res) => {
   return res.json({
     data
   });
+};
+
+
+
+exports.getTest = async (req, res) => {
+
+
+  return res.json({
+    hello: "aliff"
+  });
 }; 
