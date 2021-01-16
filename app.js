@@ -6,6 +6,10 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const app = express();
 app.use(express.static(__dirname + '/public'));
+app.use(cors());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json());
 
 mongoose
   .connect(process.env.DATABASE, {
@@ -22,11 +26,8 @@ const dataRoutes = require('./routes/curdRoutes');
 
 // app middlewares
 app.use(morgan('dev'));
-app.use(bodyParser.json());
-// app.use(cors()); // allows all origins
-if ((process.env.NODE_ENV = 'development')) {
-  app.use(cors());
-}
+
+
 
 // middleware
 app.use('/api', dataRoutes);

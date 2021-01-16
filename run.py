@@ -1,31 +1,37 @@
+import requests
+from pymongo import MongoClient
 import face_recognition
 import json
-import glob
-import os
-import base64
+from bson.objectid import ObjectId
 import time
 
-
-def main():
-    if glob.glob("uploads/input.*") != []:
-
-        path = glob.glob("uploads/input.*")[0]
-        time.sleep(1)
-        image = face_recognition.load_image_file(path)
-        face_encoding = face_recognition.face_encodings(image)[0]
-        data = json.dumps(face_encoding.tolist())
-
-        with open(path, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read())
-            tmp = '{' + '"data":"' + data + '", "face":"' + \
-                encoded_string.decode('utf-8') + '"}'
-            with open("data.txt", "w") as fp:
-
-                json.dump(
-                    json.loads(tmp), fp)
-                print("created")
-                os.remove(path)
+client = MongoClient('mongodb://localhost:27017')
+db = client['users']
+users = db.users
+URL = "https://kameken-smart-mirror.com/api/getFace"
+#URL = "http://192.168.3.2:8000/api/getFace"
+print("connecting")
 
 
-while True:
-    main()
+r = requests.get(url=URL)
+res = r.json()
+data = res["data"]
+for obj in data:
+    if "image" not in obj:
+        try:
+            image = face_recognition.load_image_file(
+                "public/" + obj["_id"] + ".png")
+            face_encoding = face_recognition.face_encodings(image)[0]
+            face_data = json.dumps(face_encoding.tolist())
+            # print(face_data)
+            current_user = {"_id": ObjectId(obj["_id"])}
+            update = {"$set": {"image": face_data}}
+
+            users.update_one(current_user, update)
+            print("Updating")
+        except:
+            print("there is no image for " + obj['_id'])
+
+
+
+
